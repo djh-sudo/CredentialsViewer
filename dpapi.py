@@ -1,5 +1,6 @@
 from FileFormat import *
 import utils
+from argparse import ArgumentParser
 import MasterKey as mk
 import DecryptCredentials as dc
 
@@ -64,4 +65,20 @@ def AutoGetCredentials(password: str):
             GetCredentials(file, master_key)
 
 
+def exec(parser: ArgumentParser):
+    args = parser.parse_args()
+    auto_exec = args.auto
+    decrypt_path = args.decrypt
+    masterKey_path = args.masterKey
+    password = args.password
+    sid = args.userSid
+    master_key = None
+    assert password, "password must be input!"
 
+    if auto_exec and password:
+        AutoGetCredentials(password)
+        return
+    if masterKey_path and sid and password:
+        master_key = GetMasterKey(masterKey_path, password, sid)
+    if decrypt_path:
+        GetCredentials(decrypt_path, master_key)
