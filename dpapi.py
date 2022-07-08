@@ -61,6 +61,7 @@ def AutoGetCredentials(password: str):
         index, sid = Search(cache_sid_file, guid)
         # print(sid, sid_file[sid][index])
         if sid:
+            print(sid)
             master_key = GetMasterKey(sid_file[sid][index], password, sid)
             GetCredentials(file, master_key)
 
@@ -73,7 +74,6 @@ def exec(parser: ArgumentParser):
     password = args.password
     sid = args.userSid
     master_key = None
-    assert password, "password must be input!"
 
     if auto_exec and password:
         AutoGetCredentials(password)

@@ -2,6 +2,7 @@ import os
 import re
 import getpass
 from FileFormat import *
+from argparse import ArgumentParser
 
 
 def readFile(file_path: str):
@@ -30,7 +31,7 @@ def HandleGUID(guid: GUID, raw_data: bytes):
 
 def TryGetUserCredentials():
     # Windows Credentials Folders
-    sc_path = ['C:/Windows/System32']
+    sc_path = []
     user = getpass.getuser()
     user_names = {'Administrator', user}
     dir_names = {'Local', 'Roaming'}
@@ -79,4 +80,23 @@ def TryGetMasterKeyFile():
     if len(sid_file) == 0:
         print('Get master key file failed!')
     return sid_file
+
+
+def exec(parser: ArgumentParser):
+    args = parser.parse_args()
+    search_key = args.searchKey
+    search_cred = args.searchCred
+    if search_key:
+        print('** Master Key File **')
+        sid_file = TryGetMasterKeyFile()
+        for sid in sid_file:
+            print('**{', sid, '**}')
+            for full_path in sid_file[sid]:
+                print(full_path)
+    if search_cred:
+        print('** Credentials Files **')
+        credentials = TryGetUserCredentials()
+        for full_path in credentials:
+            print(full_path)
+
 
