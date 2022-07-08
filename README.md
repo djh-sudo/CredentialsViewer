@@ -41,4 +41,4 @@ pycryptodomex ~= 3.15.0
 
 ## END
 
-再次感谢`mimicatz`开源项目，`demo`文件因为相对隐私，所以没有给出，源代码仅供学习参考，请勿做其它非法等用途。
+再次感谢`mimicatz`开源项目，`demo`文件因为相对隐私，所以没有给出，源代码仅供学习参考，请勿做其它非法等用途。详细过程[Also See](https://djh-sudo.github.io/Blog/#/windows/0708/README)
