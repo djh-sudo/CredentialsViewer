@@ -2,6 +2,17 @@ import argparse
 import dpapi
 import utils
 
+# demo command
+'''
+    [1] python CredentialViwer.py -skey
+    [2] python CredentialViwer.py -scred
+    [3] python CredentialViwer.py -p 123456 -auto
+    [4] python CredentialViwer.py -p 123456 -mk ./demo1/*-db97-*-868d-* -sid S-1-5-21-*-*-*-500
+    [5] python CredentialViwer.py -p 123456 -mk ./demo1/*-db97-*-868d-* -sid S-1-5-21-*-*-*-500 
+     -dc ./demo1/9EB88D43D3*******6BE1D953BA87AE
+
+'''
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -16,13 +27,6 @@ def main():
                                                                          'be decrypted')
     utils.exec(parser)
     dpapi.exec(parser)
-    # args = parser.parse_args()
-    # print(args.auto)
-    # demo
-    # password = '123456'
-    # SID = 'S-1-5-21-2300453706-2493150108-2793419970-500'
-    # master_key = dpapi.GetMasterKey('./demo3/cdadc9c2-a3e5-4abe-b184-e69949c18d05', password, SID)
-    # dpapi.GetCredentials('./demo3/6FD3FB652B5A61B4225D169E4B4565AA', master_key)
 
 
 if __name__ == '__main__':
