@@ -37,6 +37,7 @@ class DPAPI_MASTERKEY_DOMAINKEY:
         self.pbAccesscheck = b''    # not fixed
 
     def info(self):
+        # TODO
         pass
 
 

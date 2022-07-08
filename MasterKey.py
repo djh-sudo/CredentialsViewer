@@ -52,7 +52,7 @@ def HandleRawMasterkey(file_path):
     apapi_masterkey.CredHist = HandleCredentials(apapi_masterkey.CredHist, raw_file[192 + acc_len:212 + acc_len])
 
     # Domain Key
-    # TUDO
+    # TODO
     return apapi_masterkey
 
 
