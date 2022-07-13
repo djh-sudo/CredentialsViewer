@@ -1,4 +1,5 @@
 # CredentialsViewer
+![](https://www.oscs1024.com/platform/badge/djh-sudo/CredentialsViewer.svg)
 
 ## Introduction
 
