@@ -56,6 +56,7 @@ def HandleCredentialFile(file_path):
         return None
 
     enc_cred = DPAPI_ENCRYPTED_CRED()
+    enc_cred._full_path = file_path
     enc_cred.version = struct.unpack("<I", raw_credential[0:4])[0]
 
     enc_cred.blockSize = struct.unpack("<I", raw_credential[4:8])[0]
@@ -161,3 +162,19 @@ def DecryptCrenFile(blob: DPAPI_BLOB, masterKey: str):
     output = cutils.DecryptAES_CBC(out_key, bytes.fromhex(blob.pbData), bytes.fromhex(IV))
 
     return output
+
+
+def SaveCredentialCSV(save_path: str):
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
+    assert os.path.isdir(save_path), 'save path must be dir'
+    save_name = os.path.join(save_path, 'credentials.csv')
+    header = ['guidMasterKey', 'algCrypt', 'dwAlgCryptLen', 'pbSalt', 'algHash', 'dwAlgHashLen', 'pbData',
+              'full path', 'LastWritten', 'credSize', 'TargetName', 'UserName', 'CredentialBlob']
+    with open(save_name, 'w', encoding='utf-8') as f:
+        assert os.path.exists(save_name), 'save file failed!'
+        for item in header:
+            f.write(item)
+            f.write(',')
+        f.write('\n')
+    f.close()

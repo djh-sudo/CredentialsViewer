@@ -12,7 +12,7 @@
 python CredentialViwer.py
 ```
 
-参数包括了`-p`，`-auto`，`-mk`，`-sid`，`-dc`，含义如下：
+参数包括了`-p`，`-auto`，`-mk`，`-sid`，`-dc`等，含义如下：
 
 ```bash
 -p user login password  # 用户登录密码,必填
@@ -22,6 +22,8 @@ python CredentialViwer.py
 -dc credentials file path # 用户的凭证文件路径,可选
 -skey # 搜索本机主密钥文件的路径
 -scred # 搜索本机凭证文件所在路径
+-show # 直接输出解析信息,可选
+-save save_path #解密信息保存为csv文件,可选
 ```
 
 可选的部分主要用于自动搜索文件失败，需要手动添加路径，或者离线解密其它计算机的文件的场景。例如解密其它主机的凭证文件，需要准备登录密码(`123456`)，主密钥和凭证文件(`demo1`文件夹中的部分)以及`sid`。

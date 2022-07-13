@@ -1,21 +1,24 @@
+import os
+
+
 class GUID:
     def __init__(self):
-        self.Data1 = b''            # 4 bytes
-        self.Data2 = b''            # 2 bytes
-        self.Data3 = b''            # 2 bytes
-        self.Data4 = b''            # 8 bytes
+        self.Data1 = ''             # 4 bytes
+        self.Data2 = ''             # 2 bytes
+        self.Data3 = ''             # 2 bytes
+        self.Data4 = ''             # 8 bytes
 
 
 class DPAPI_MASTERKEY:
     def __init__(self):
-        self.dwVersion = b''        # 4 bytes
-        self.salt = b''             # 16 bytes
-        self.rounds = b''           # 4 bytes
-        self.algHash = b''          # 4 bytes
-        self.algCrypt = b''         # 4 bytes
-        self.pbKey = b''            # not fixed
-        self._dwKeyLen = b''        # not exist
-        self._masterkey = b''       # not exist
+        self.dwVersion = ''         # 4 bytes
+        self.salt = ''              # 16 bytes
+        self.rounds = ''            # 4 bytes
+        self.algHash = ''           # 4 bytes
+        self.algCrypt = ''          # 4 bytes
+        self.pbKey = ''             # not fixed
+        self._dwKeyLen = ''         # not exist
+        self._masterkey = ''        # not exist
 
     def info(self):
         print('** Master Key')
@@ -29,12 +32,12 @@ class DPAPI_MASTERKEY:
 
 class DPAPI_MASTERKEY_DOMAINKEY:
     def __init__(self):
-        self.dwVersion = b''        # 4 bytes
-        self.dwSecrete = b''        # 4 bytes
-        self.dwAccesscheckLen = b'' # 4 bytes
-        self.guidMasterKey = b''    # 16 bytes
-        self.pbSecrete = b''        # not fixed
-        self.pbAccesscheck = b''    # not fixed
+        self.dwVersion = ''         # 4 bytes
+        self.dwSecrete = ''         # 4 bytes
+        self.dwAccesscheckLen = ''  # 4 bytes
+        self.guidMasterKey = ''     # 16 bytes
+        self.pbSecrete = ''         # not fixed
+        self.pbAccesscheck = ''     # not fixed
 
     def info(self):
         # TODO
@@ -43,9 +46,9 @@ class DPAPI_MASTERKEY_DOMAINKEY:
 
 class DPAPI_MASTERKEY_CREDHIST:
     def __init__(self):
-        self.dwVersion = b''        # 4 bytes
+        self.dwVersion = ''         # 4 bytes
         self.guid = GUID()          # 16 bytes
-        self._guid = b''           # not exist
+        self._guid = ''            # not exist
 
     def info(self):
         print('** Credentials Info:')
@@ -55,24 +58,25 @@ class DPAPI_MASTERKEY_CREDHIST:
 
 class DPAPI_MASTERKEYS:
     def __init__(self):
+        self._full_path = ''        # not exist
         self.valid = False          # not exist
 
-        self.dwVersion = b''        # 4 bytes
+        self.dwVersion = ''         # 4 bytes
         
-        self.unk0 = b''             # 4 bytes
-        self.unk1 = b''             # 4 bytes
+        self.unk0 = ''              # 4 bytes
+        self.unk1 = ''              # 4 bytes
         
-        self.szGuid = b''           # 36 * 2 bytes
+        self.szGuid = ''            # 36 * 2 bytes
         
-        self.unk2 = b''             # 4 bytes
-        self.unk3 = b''             # 4 byte
+        self.unk2 = ''              # 4 bytes
+        self.unk3 = ''              # 4 byte
         
-        self.dwFlags = b''          # 4 bytes
+        self.dwFlags = ''           # 4 bytes
         
-        self.dwMasterKeyLen = b''   # 8 bytes
-        self.dwBackupKeyLen = b''   # 8 bytes
-        self.dwCreHistLen = b''     # 8 bytes
-        self.dwDomainKeyLen = b''   # 8 bytes
+        self.dwMasterKeyLen = ''    # 8 bytes
+        self.dwBackupKeyLen = ''    # 8 bytes
+        self.dwCreHistLen = ''      # 8 bytes
+        self.dwDomainKeyLen = ''    # 8 bytes
         
         self.MasterKey = DPAPI_MASTERKEY()
         self.BackKey = DPAPI_MASTERKEY()
@@ -92,48 +96,101 @@ class DPAPI_MASTERKEYS:
         self.BackKey.info()
         self.CredHist.info()
 
+    def save(self, save_path):
+        save_name = os.path.join(save_path, 'masterKey.csv')
+        assert os.path.exists(save_name), 'save file missing!'
+        with open(save_name, 'a', encoding='utf-8') as f:
+            f.write(self._full_path.split('/')[-1])
+            f.write(',')
+            f.write(self.szGuid)
+            f.write(',')
+            f.write(str(self.dwFlags))
+            f.write(',')
+            f.write(str(self.dwMasterKeyLen))
+            f.write(',')
+            f.write(str(self.dwBackupKeyLen))
+            f.write(',')
+            f.write(self.MasterKey.salt)
+            f.write(',')
+            f.write(str(self.MasterKey.rounds))
+            f.write(',')
+            f.write(str(self.MasterKey.algHash))
+            f.write(',')
+            f.write(str(self.MasterKey.algCrypt))
+            f.write(',')
+            f.write(self.MasterKey.pbKey)
+            f.write(',')
+            f.write(self.MasterKey._masterkey)
+            f.write(',')
+            f.write(self._full_path)
+            f.write('\n')
+            f.close()
+
 
 class DPAPI_ENCRYPTED_CRED:
     def __init__(self):
-        self.version = b''          # 4 bytes
-        self.blockSize = b''        # 4 bytes
-        self.unk = b''              # 4 bytes
+        self._full_path = ''        # not fixed
+        self.version = ''           # 4 bytes
+        self.blockSize = ''         # 4 bytes
+        self.unk = ''               # 4 bytes
         self.blob = DPAPI_BLOB()    # not fixed
+
+    def save(self, save_path):
+        save_name = save_path + 'credentials.csv'
+        assert os.path.exists(save_name), 'save file missing!'
+        with open(save_name, 'a', encoding='utf-8') as f:
+            f.write(self.blob._guidMasterKey)
+            f.write(',')
+            f.write(str(self.blob.algCrypt))
+            f.write(',')
+            f.write(str(self.blob.dwAlgCryptLen))
+            f.write(',')
+            f.write(self.blob.pbSalt)
+            f.write(',')
+            f.write(str(self.blob.algHash))
+            f.write(',')
+            f.write(str(self.blob.dwAlgHashLen))
+            f.write(',')
+            f.write(self.blob.pbData)
+            f.write(',')
+            f.write(self._full_path)
+            f.write(',')
+        f.close()
 
 
 class DPAPI_BLOB:
     def __init__(self):
-        self.dwVersion = b''            # 4 bytes
+        self.dwVersion = ''             # 4 bytes
         self.guidProvider = GUID()      # 16 bytes
-        self._guidProvider = b''        # not exist
-        self.dwMasterKeyVersion = b''   # 4 bytes
+        self._guidProvider = ''         # not exist
+        self.dwMasterKeyVersion = ''    # 4 bytes
         self.guidMasterKey = GUID()     # 16 bytes
-        self._guidMasterKey = b''       # not exist
-        self.dwFlags = b''              # 4 bytes
+        self._guidMasterKey = ''        # not exist
+        self.dwFlags = ''               # 4 bytes
 
-        self.dwDescriptionLen = b''     # 4 bytes
-        self.szDescription = b''        # not fixed
+        self.dwDescriptionLen = ''      # 4 bytes
+        self.szDescription = ''         # not fixed
 
-        self.algCrypt = b''             # 4 byte
-        self.dwAlgCryptLen = b''        # 4 bytes
+        self.algCrypt = ''              # 4 byte
+        self.dwAlgCryptLen = ''         # 4 bytes
 
-        self.dwSaltLen = b''            # 4 bytes
-        self.pbSalt = b''               # not fixed
+        self.dwSaltLen = ''             # 4 bytes
+        self.pbSalt = ''                # not fixed
 
-        self.dwHmacKeyLen = b''         # 4 bytes
-        self.pbHmackKey = b''           # not fixed
+        self.dwHmacKeyLen = ''          # 4 bytes
+        self.pbHmackKey = ''            # not fixed
 
-        self.algHash = b''              # 4 byte
-        self.dwAlgHashLen = b''         # 4 bytes
+        self.algHash = ''               # 4 byte
+        self.dwAlgHashLen = ''          # 4 bytes
 
-        self.dwHmac2KeyLen = b''        # 4 bytes
-        self.pbHmack2Key = b''          # not fixed
+        self.dwHmac2KeyLen = ''         # 4 bytes
+        self.pbHmack2Key = ''           # not fixed
 
-        self.dwDataLen = b''            # 4 byte
-        self.pbData = b''               # not fixed
+        self.dwDataLen = ''             # 4 byte
+        self.pbData = ''                # not fixed
 
-        self.dwSignLen = b''            # 4 bytes
-        self.pbSign = b''               # not fixed
+        self.dwSignLen = ''             # 4 bytes
+        self.pbSign = ''                # not fixed
 
     def info(self):
         print('** BLOB **')
@@ -162,44 +219,44 @@ class DPAPI_BLOB:
 
 class FILE_TIME:
     def __init__(self):
-        self.dwLowDateTime = b''        # 4 bytes
-        self.dwHighDateTime = b''       # 4 bytes
-        self._file_time = b''           # not exist
+        self.dwLowDateTime = ''         # 4 bytes
+        self.dwHighDateTime = ''        # 4 bytes
+        self._file_time = ''            # not exist
 
 
 class CRED_BLOB:
     def __init__(self):
-        self.credFlags = b''            # 4 bytes
-        self.credSize = b''             # 4 bytes
-        self.credUnk0 = b''             # 4 bytes
+        self.credFlags = ''             # 4 bytes
+        self.credSize = ''              # 4 bytes
+        self.credUnk0 = ''              # 4 bytes
 
-        self.Type = b''                 # 4 bytes
-        self.Flags = b''                # 4 bytes
+        self.Type = ''                  # 4 bytes
+        self.Flags = ''                 # 4 bytes
         self.LastWritten = FILE_TIME()  # 8 bytes
-        self.unkFlagsOrSize = b''       # 4 bytes
-        self.Persist = b''              # 4 bytes
-        self.AttributeCount = b''       # 4 bytes
-        self.unk0 = b''                 # 4 bytes
-        self.unk1 = b''                 # 4 bytes
+        self.unkFlagsOrSize = ''        # 4 bytes
+        self.Persist = ''               # 4 bytes
+        self.AttributeCount = ''        # 4 bytes
+        self.unk0 = ''                  # 4 bytes
+        self.unk1 = ''                  # 4 bytes
 
-        self.dwTargetName = b''         # 4 bytes
-        self.TargetName = b''           # not fixed
-        self.dwTargetAlias = b''        # 4 bytes
-        self.TargetAlias = b''          # not fixed
+        self.dwTargetName = ''          # 4 bytes
+        self.TargetName = ''            # not fixed
+        self.dwTargetAlias = ''         # 4 bytes
+        self.TargetAlias = ''           # not fixed
 
-        self.dwComment = b''            # 4 bytes
-        self.Comment = b''              # not fixed
+        self.dwComment = ''             # 4 bytes
+        self.Comment = ''               # not fixed
 
-        self.dwUnkData = b''            # 4 bytes
-        self.UnkData = b''              # not fixed
+        self.dwUnkData = ''             # 4 bytes
+        self.UnkData = ''               # not fixed
 
-        self.dwUserName = b''           # 4 bytes
-        self.UserName = b''             # not fixed
+        self.dwUserName = ''            # 4 bytes
+        self.UserName = ''              # not fixed
 
-        self.CredentialBlobSize = b''   # 4 bytes
-        self.CredentialBlob = b''       # not fixed
+        self.CredentialBlobSize = ''    # 4 bytes
+        self.CredentialBlob = ''        # not fixed
 
-        self.Attributes = b''           # not fixed[ignore]
+        self.Attributes = ''            # not fixed[ignore]
 
     def info(self):
         print('** Credentials **')
@@ -220,3 +277,20 @@ class CRED_BLOB:
         print('UnkData:', self.UnkData)
         print('UserName:', self.UserName)
         print('CredentialBlob:', self.CredentialBlob)
+
+    def save(self, save_path):
+        save_name = save_path + 'credentials.csv'
+        assert os.path.exists(save_name), 'save file missing!'
+        with open(save_name, 'a', encoding='utf-8') as f:
+            f.write(self.LastWritten._file_time)
+            f.write(',')
+            f.write(str(self.credSize))
+            f.write(',')
+            f.write(self.TargetName)
+            f.write(',')
+            f.write(self.UserName)
+            f.write(',')
+            f.write(self.CredentialBlob)
+            f.write('\n')
+        f.close()
+

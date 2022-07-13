@@ -31,6 +31,7 @@ def HandleRawMasterkey(file_path):
         print('not a valid master file!')
         return None
     apapi_masterkey = DPAPI_MASTERKEYS()
+    apapi_masterkey._full_path = file_path
     apapi_masterkey.dwVersion = struct.unpack("<I", raw_file[0:4])[0]
     apapi_masterkey.szGuid = raw_file[12:84].decode('utf-16')
     apapi_masterkey.dwFlags = struct.unpack("<I", raw_file[92:96])[0]
@@ -66,7 +67,26 @@ def MemoryVerify(raw_masterkey: bytes, shaDerivedKey: bytes):
     if hmac2 == saved_hash:
         print('memory verify is OK!')
         flag = True
+    else:
+        print('Decrypt failed!')
+        master_key = b'(error)'
     return master_key.hex(), flag
+
+
+def SaveMasterKeyCSV(save_path: str):
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
+    assert os.path.isdir(save_path), 'save path must be dir'
+    save_name = os.path.join(save_path, 'masterKey.csv')
+    header = ['file name', 'szGuid', 'dwFlags', 'dwMasterKeyLen', 'dwBackupKeyLen', 'salt',
+              'rounds', 'algHash', 'algCrypt', 'pbKey', 'Master key', 'full path']
+    with open(save_name, 'w', encoding='utf-8') as f:
+        assert os.path.exists(save_name), 'save file failed!'
+        for item in header:
+            f.write(item)
+            f.write(',')
+        f.write('\n')
+    f.close()
 
 
 def DecryptMasterKey(apapi_masterkey: DPAPI_MASTERKEYS, password: str, SID: str):

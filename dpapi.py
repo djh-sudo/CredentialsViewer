@@ -28,8 +28,9 @@ def GetCredentials(file_path: str, master_key: DPAPI_MASTERKEYS = None, flag=Tru
         cred = dc.HandleCRED_BLOB(bytes.fromhex(output))
         if flag:
             cred.info()
+        return enc_cred, cred
     else:
-        return enc_cred
+        return enc_cred, CRED_BLOB()
 
 
 def Search(sid_file: dict, guid: str):
@@ -49,21 +50,27 @@ def HandleSIDFile(sid_file: dict):
     return cache
 
 
-def AutoGetCredentials(password: str):
+def AutoGetCredentials(password: str, save_path: str = None, flag=True):
     cred_files = utils.TryGetUserCredentials()
     sid_file = utils.TryGetMasterKeyFile()
     cache_sid_file = HandleSIDFile(sid_file)
-
+    if save_path:
+        mk.SaveMasterKeyCSV(save_path)
+        dc.SaveCredentialCSV(save_path)
     for file in cred_files:
-        enc_cred = GetCredentials(file, None, False)
+        enc_cred, cred = GetCredentials(file, None, False)
         guid = enc_cred.blob._guidMasterKey
         # search the master key
         index, sid = Search(cache_sid_file, guid)
         # print(sid, sid_file[sid][index])
         if sid:
             print(sid)
-            master_key = GetMasterKey(sid_file[sid][index], password, sid)
-            GetCredentials(file, master_key)
+            master_key = GetMasterKey(sid_file[sid][index], password, sid, flag)
+            enc, cred = GetCredentials(file, master_key, flag)
+            if save_path:
+                master_key.save(save_path)
+                enc.save(save_path)
+                cred.save(save_path)
 
 
 def exec(parser: ArgumentParser):
@@ -74,11 +81,19 @@ def exec(parser: ArgumentParser):
     password = args.password
     sid = args.userSid
     master_key = None
-
+    save_path = args.savePath
+    show = args.showInfo
     if auto_exec and password:
-        AutoGetCredentials(password)
+        AutoGetCredentials(password, save_path, show)
         return
     if masterKey_path and sid and password:
-        master_key = GetMasterKey(masterKey_path, password, sid)
+        master_key = GetMasterKey(masterKey_path, password, sid, show)
+        if save_path:
+            mk.SaveMasterKeyCSV(save_path)
+            master_key.save(save_path)
     if decrypt_path:
-        GetCredentials(decrypt_path, master_key)
+        enc, cred = GetCredentials(decrypt_path, master_key, show)
+        if save_path:
+            dc.SaveCredentialCSV(save_path)
+            enc.save(save_path)
+            cred.save(save_path)
