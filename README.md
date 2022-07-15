@@ -10,7 +10,7 @@
 ## Quick View
 
 ```python
-python CredentialViwer.py
+python CredentialViewer.py
 ```
 
 参数包括了`-p`，`-auto`，`-mk`，`-sid`，`-dc`等，含义如下：
@@ -30,7 +30,7 @@ python CredentialViwer.py
 可选的部分主要用于自动搜索文件失败，需要手动添加路径，或者离线解密其它计算机的文件的场景。例如解密其它主机的凭证文件，需要准备登录密码(`123456`)，主密钥和凭证文件(`demo1`文件夹中的部分)以及`sid`。
 
 ```python
-python CredentialViwer.py -p 123456 -mk ./demo1/17b321e0-*-49bc-*-* -sid S-1-5-21-*-*-*-500 -dc ./demo1/9EB88D******CF09******D953******
+python CredentialViewer.py -p 123456 -mk ./demo1/17b321e0-*-49bc-*-* -sid S-1-5-21-*-*-*-500 -dc ./demo1/9EB88D******CF09******D953******
 ```
 
 ![demo](src/demo.png)
@@ -43,6 +43,16 @@ pycryptodomex ~= 3.15.0
 ```
 
 测试环境在`windows 10/11`主机上，这里需要本地账户，而不是微软账户！
+
+## pyinstaller
+
+打包的时候可能会出现`Cryptodome`模块，需要把`hook-Cryptodome.py`文件放置在`Lib/site-packages/Pyinstaller`文件夹中。
+
+在打包时，执行以下命令。
+
+```bash
+pyinstaller CredentialViewer.py -F -p venv/Lib/site-packages
+```
 
 ## END
 
