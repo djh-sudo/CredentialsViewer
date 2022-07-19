@@ -15,6 +15,7 @@ from PyQt5.QtWidgets import QTableWidget, QAbstractItemView, QTableWidgetItem
 from setting import *
 from rosource_rc import *
 import SettingWindow
+import re
 
 
 class Ui_MainWindow(QtWidgets.QMainWindow):
@@ -112,6 +113,13 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.tableWidget.setSelectionMode(QAbstractItemView.SingleSelection)
 
         # ================================================
+        self.form1 = QtWidgets.QMainWindow()
+        self.setting_window = SettingWindow.Ui_MainWindow()
+        self.setting_window.setWindowModality(Qt.ApplicationModal)
+        self.setting_window.setWindowIcon(QIcon(':/pic/setting.png'))
+
+        self.res = []
+
         self.InitShow()
         self.InitSignal()
         self.retranslateUi(MainWindow)
@@ -131,9 +139,17 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.actionExit.setText(_translate("MainWindow", "Exit"))
 
     def InitShow(self):
-        res = GetLocalCredential('')
+        self.res = GetLocalCredential('')
+        self.tableWidget.clearContents()
+        self.tableWidget.setRowCount(0)
         self.tableWidget.setSortingEnabled(False)
-        for enc, blob in res:
+        self.ShowInfo()
+        self.tableWidget.setSortingEnabled(True)
+
+    def ShowInfo(self):
+        if not self.res:
+            return
+        for enc, blob, _ in self.res:
             cur_row = self.tableWidget.rowCount()
             self.tableWidget.insertRow(cur_row)
             self.tableWidget.setItem(cur_row, 0, QTableWidgetItem(enc._full_path.split('/')[-1].split('\\')[-1]))
@@ -143,7 +159,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             self.tableWidget.setItem(cur_row, 1, enc_sz)
 
             self.tableWidget.setItem(cur_row, 2, QTableWidgetItem(blob.LastWritten._file_time))
-            self.tableWidget.setItem(cur_row, 3, QTableWidgetItem(blob.Persist))
+            self.tableWidget.setItem(cur_row, 3, QTableWidgetItem(enc.blob.szDescription))
             self.tableWidget.setItem(cur_row, 4, QTableWidgetItem(blob.TargetName))
             self.tableWidget.setItem(cur_row, 5, QTableWidgetItem(blob.UserName))
             self.tableWidget.setItem(cur_row, 6, QTableWidgetItem(blob.CredentialBlob))
@@ -159,12 +175,36 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.setupUi(self)
 
     def InitSignal(self):
+        self.setting_window.signal.connect(self.Flush)
         self.actionCredentials_Decryption_Options.triggered.connect(self.OpenSettingWindow)
+        self.tableWidget.itemClicked.connect(self.ShowContent)
 
     def OpenSettingWindow(self):
-        self.form1 = QtWidgets.QMainWindow()
-        self.setting_window = SettingWindow.Ui_MainWindow()
-        self.setting_window.setWindowModality(Qt.ApplicationModal)
-        self.setting_window.setWindowIcon(QIcon(':/pic/setting.png'))
         self.setting_window.show()
+
+    def Flush(self, psw: str):
+        cred_files = Load('cred_files')
+        sid_file = Load('sid_file')
+        cache_sid_file = Load('cache_sid_file')
+        if cred_files and sid_file and cache_sid_file:
+            self.res = GetCredentials(psw, cred_files, sid_file, cache_sid_file)
+            self.tableWidget.clearContents()
+            self.tableWidget.setRowCount(0)
+            self.tableWidget.setSortingEnabled(False)
+            self.ShowInfo()
+            self.tableWidget.setSortingEnabled(True)
+        else:
+            return
+
+    def ShowContent(self, item):
+        self.textEdit.clear()
+        cur_row = item.row()
+        if len(self.res[cur_row]) == 3:
+            content = self.res[cur_row][2]
+            iteration = len(content) // 32 + 1
+            for it in range(iteration):
+                text_list = re.findall(".{2}", content[it * 32:(it + 1) * 32])
+                letter = ToASCII(text_list)
+                new_text = " ".join(text_list)
+                self.textEdit.append(new_text + '\t\t' + letter)
 

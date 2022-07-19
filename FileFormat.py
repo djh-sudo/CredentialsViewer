@@ -136,7 +136,7 @@ class DPAPI_ENCRYPTED_CRED:
         self.blob = DPAPI_BLOB()    # not fixed
 
     def save(self, save_path):
-        save_name = save_path + 'credentials.csv'
+        save_name = os.path.join(save_path, 'credentials.csv')
         assert os.path.exists(save_name), 'save file missing!'
         with open(save_name, 'a', encoding='utf-8') as f:
             f.write(self.blob._guidMasterKey)
@@ -279,7 +279,7 @@ class CRED_BLOB:
         print('CredentialBlob:', self.CredentialBlob)
 
     def save(self, save_path):
-        save_name = save_path + 'credentials.csv'
+        save_name = os.path.join(save_path, 'credentials.csv')
         assert os.path.exists(save_name), 'save file missing!'
         with open(save_name, 'a', encoding='utf-8') as f:
             f.write(self.LastWritten._file_time)

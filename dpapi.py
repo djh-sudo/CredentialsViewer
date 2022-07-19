@@ -28,9 +28,9 @@ def GetCredentials(file_path: str, master_key: DPAPI_MASTERKEYS = None, flag=Tru
         cred = dc.HandleCRED_BLOB(bytes.fromhex(output))
         if flag:
             cred.info()
-        return enc_cred, cred
+        return enc_cred, cred, output
     else:
-        return enc_cred, CRED_BLOB()
+        return enc_cred, CRED_BLOB(), ''
 
 
 def Search(sid_file: dict, guid: str):
@@ -58,7 +58,7 @@ def AutoGetCredentials(password: str, save_path: str = None, flag=True):
         mk.SaveMasterKeyCSV(save_path)
         dc.SaveCredentialCSV(save_path)
     for file in cred_files:
-        enc_cred, cred = GetCredentials(file, None, False)
+        enc_cred, cred, _ = GetCredentials(file, None, False)
         guid = enc_cred.blob._guidMasterKey
         # search the master key
         index, sid = Search(cache_sid_file, guid)
@@ -66,7 +66,7 @@ def AutoGetCredentials(password: str, save_path: str = None, flag=True):
         if sid:
             print(sid)
             master_key = GetMasterKey(sid_file[sid][index], password, sid, flag)
-            enc, cred = GetCredentials(file, master_key, flag)
+            enc, cred, _ = GetCredentials(file, master_key, flag)
             if save_path:
                 master_key.save(save_path)
                 enc.save(save_path)
@@ -93,7 +93,7 @@ def exec(parser: ArgumentParser):
             mk.SaveMasterKeyCSV(save_path)
             master_key.save(save_path)
     if decrypt_path:
-        enc, cred = GetCredentials(decrypt_path, master_key, show)
+        enc, cred, _ = GetCredentials(decrypt_path, master_key, show)
         if save_path:
             dc.SaveCredentialCSV(save_path)
             enc.save(save_path)

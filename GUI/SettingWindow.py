@@ -9,10 +9,15 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QMainWindow
+from setting import *
+import Mainwindow
 
 
 class Ui_MainWindow(QMainWindow):
+    signal = pyqtSignal(str)
+
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.setWindowModality(QtCore.Qt.WindowModal)
@@ -174,7 +179,10 @@ class Ui_MainWindow(QMainWindow):
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
         self.statusbar.setObjectName("statusbar")
         MainWindow.setStatusBar(self.statusbar)
-
+        # =====================================
+        self.Init()
+        self.InitSignals()
+        # =====================================
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
@@ -186,9 +194,45 @@ class Ui_MainWindow(QMainWindow):
         self.label_3.setText(_translate("MainWindow", "Windows Login Password:"))
         self.password.setPlaceholderText(_translate("MainWindow", "logon password"))
         self.pushButton.setText(_translate("MainWindow", "OK"))
-        self.cancel.setText(_translate("MainWindow", "Canccel"))
+        self.cancel.setText(_translate("MainWindow", "Cancel"))
         self.apply.setText(_translate("MainWindow", "Apply"))
 
     def __init__(self):
         super(Ui_MainWindow, self).__init__()
         self.setupUi(self)
+
+    def Init(self):
+        cred_path = Load('cred_path')
+        if cred_path and len(cred_path) >= 1:
+            self.Cred1.setText(cred_path[0])
+        if cred_path and len(cred_path) >= 2:
+            self.Cred2.setText(cred_path[1])
+        if cred_path and len(cred_path) >= 3:
+            self.Cred3.setText(cred_path[2])
+
+        sid_path = Load('sid_path')
+        if sid_path and len(sid_path) >= 1:
+            self.Protect1.setText(sid_path[0])
+        if sid_path and len(sid_path) >= 2:
+            self.Protect2.setText(sid_path[1])
+        return
+
+    def InitSignals(self):
+        self.pushButton.clicked.connect(self.PressOK)
+        self.cancel.clicked.connect(self.PressCanccel)
+        self.apply.clicked.connect(self.PressApply)
+
+    def PressOK(self):
+        if self.PressApply():
+            self.signal.emit(self.password.text())
+        self.close()
+
+    def PressCanccel(self):
+        self.close()
+
+    def PressApply(self):
+        if self.password.text() != '':
+            return True
+        else:
+            return False
+
