@@ -11,8 +11,7 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QMainWindow
-from setting import *
-import Mainwindow
+from GUI.setting import *
 
 
 class Ui_MainWindow(QMainWindow):
@@ -219,7 +218,7 @@ class Ui_MainWindow(QMainWindow):
 
     def InitSignals(self):
         self.pushButton.clicked.connect(self.PressOK)
-        self.cancel.clicked.connect(self.PressCanccel)
+        self.cancel.clicked.connect(self.PressCancel)
         self.apply.clicked.connect(self.PressApply)
 
     def PressOK(self):
@@ -227,7 +226,7 @@ class Ui_MainWindow(QMainWindow):
             self.signal.emit(self.password.text())
         self.close()
 
-    def PressCanccel(self):
+    def PressCancel(self):
         self.close()
 
     def PressApply(self):

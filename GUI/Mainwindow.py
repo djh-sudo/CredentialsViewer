@@ -11,12 +11,13 @@
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QTableWidget, QAbstractItemView, QTableWidgetItem
-from setting import *
-from rosource_rc import *
-import SettingWindow
+from PyQt5.QtWidgets import QTableWidget, QAbstractItemView, QTableWidgetItem, QMessageBox
+from GUI.setting import *
+from GUI.rosource_rc import *
+import GUI.SettingWindow as SettingWindow
 import re
 import threading
+import DecryptCredentials as dc
 
 
 class Ui_MainWindow(QtWidgets.QMainWindow):
@@ -89,6 +90,17 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
         # ================================================
         self.setWindowIcon(QIcon(':/pic/title.png'))
+        self.actionSave.setIcon(QIcon(':/pic/save.png'))
+        self.actionExit.setIcon(QIcon(':/pic/exit.png'))
+        self.actionCredentials_Decryption_Options.setIcon(QIcon(':/pic/setting.png'))
+
+        self.toolBar = QtWidgets.QToolBar(MainWindow)
+        self.toolBar.setObjectName('toolBar')
+        MainWindow.addToolBar(QtCore.Qt.TopToolBarArea, self.toolBar)
+        self.toolBar.addAction(self.actionCredentials_Decryption_Options)
+        self.toolBar.addAction(self.actionSave)
+        self.toolBar.addAction(self.actionExit)
+
         self.tableWidget.clear()
         self.tableWidget.setColumnCount(9)
         self.tableWidget.setShowGrid(False)
@@ -114,11 +126,6 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.tableWidget.setSelectionMode(QAbstractItemView.SingleSelection)
 
         # ================================================
-        self.form1 = QtWidgets.QMainWindow()
-        self.setting_window = SettingWindow.Ui_MainWindow()
-        self.setting_window.setWindowModality(Qt.ApplicationModal)
-        self.setting_window.setWindowIcon(QIcon(':/pic/setting.png'))
-
         self.res = []
 
         # self.InitShow()
@@ -180,11 +187,17 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.setupUi(self)
 
     def InitSignal(self):
-        self.setting_window.signal.connect(self.Flush)
         self.actionCredentials_Decryption_Options.triggered.connect(self.OpenSettingWindow)
         self.tableWidget.itemClicked.connect(self.ShowContent)
+        self.actionExit.triggered.connect(self.Exit)
+        self.actionSave.triggered.connect(self.Save)
 
     def OpenSettingWindow(self):
+        self.form1 = QtWidgets.QMainWindow()
+        self.setting_window = SettingWindow.Ui_MainWindow()
+        self.setting_window.setWindowModality(Qt.ApplicationModal)
+        self.setting_window.setWindowIcon(QIcon(':/pic/setting.png'))
+        self.setting_window.signal.connect(self.Flush)
         self.setting_window.show()
 
     def Flush(self, psw: str):
@@ -217,3 +230,14 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                 new_text = " ".join(text_list)
                 self.textEdit.append(new_text + '\t\t' + letter)
 
+    def Exit(self):
+        self.close()
+
+    def Save(self):
+        save_path = 'Output'
+        dc.SaveCredentialCSV(save_path)
+        if self.res:
+            for enc, cred, _ in self.res:
+                enc.save(save_path)
+                cred.save(save_path)
+        QMessageBox.information(self, 'Info', 'save to Output/Credentials.csv')
