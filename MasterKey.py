@@ -1,6 +1,5 @@
 import cutils
 import utils
-import os
 from FileFormat import *
 import struct
 

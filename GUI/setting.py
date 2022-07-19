@@ -63,3 +63,13 @@ def ToASCII(letter_list: list):
         else:
             res += '.'
     return res
+
+
+def ClearDir():
+    path = 'cache'
+    if not os.path.exists(path):
+        os.removedirs(path)
+        os.mkdir(path)
+    else:
+        return
+

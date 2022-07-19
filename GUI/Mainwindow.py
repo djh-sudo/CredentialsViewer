@@ -16,6 +16,7 @@ from setting import *
 from rosource_rc import *
 import SettingWindow
 import re
+import threading
 
 
 class Ui_MainWindow(QtWidgets.QMainWindow):
@@ -120,8 +121,11 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
         self.res = []
 
-        self.InitShow()
+        # self.InitShow()
         self.InitSignal()
+        self.statusbar.showMessage('busy ...')
+        threading.Thread(target=self.InitShow).start()
+
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
@@ -145,6 +149,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.tableWidget.setSortingEnabled(False)
         self.ShowInfo()
         self.tableWidget.setSortingEnabled(True)
+        self.statusbar.showMessage('All is OK')
 
     def ShowInfo(self):
         if not self.res:
@@ -183,17 +188,21 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.setting_window.show()
 
     def Flush(self, psw: str):
+        self.statusbar.showMessage('busy ...')
+        threading.Thread(target=self.CalcThread, args=(psw,)).start()
+
+    def CalcThread(self, psw: str):
         cred_files = Load('cred_files')
         sid_file = Load('sid_file')
         cache_sid_file = Load('cache_sid_file')
         if cred_files and sid_file and cache_sid_file:
-            self.res = GetCredentials(psw, cred_files, sid_file, cache_sid_file)
             self.tableWidget.clearContents()
             self.tableWidget.setRowCount(0)
-            self.tableWidget.setSortingEnabled(False)
+            self.res = GetCredentials(psw, cred_files, sid_file, cache_sid_file)
             self.ShowInfo()
-            self.tableWidget.setSortingEnabled(True)
+            self.statusbar.showMessage('all is OK')
         else:
+            self.statusbar.showMessage('all is OK')
             return
 
     def ShowContent(self, item):
