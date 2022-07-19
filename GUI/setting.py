@@ -1,6 +1,7 @@
 import utils
 import dpapi
 import pickle
+import shutil
 from FileFormat import *
 
 
@@ -66,9 +67,9 @@ def ToASCII(letter_list: list):
 
 
 def ClearDir():
-    path = 'cache'
-    if not os.path.exists(path):
-        os.removedirs(path)
+    path = './cache'
+    if os.path.exists(path):
+        shutil.rmtree(path)
         os.mkdir(path)
     else:
         return
