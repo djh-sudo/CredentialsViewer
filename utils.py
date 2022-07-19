@@ -12,7 +12,6 @@ def readFile(file_path: str):
 
 
 def EncodeWCHAE(data):
-    assert data
     new_data = ''
     for i in data:
         new_data += i + '\0'
