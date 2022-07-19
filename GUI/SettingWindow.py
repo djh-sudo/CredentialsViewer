@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'Setting.ui'
+# Form implementation generated from reading ui file 'SettingWindow.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.4
 #
@@ -9,17 +9,21 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtWidgets import QMainWindow
 
 
-class Ui_Form(object):
-    def setupUi(self, Form):
-        Form.setObjectName("Form")
-        Form.resize(660, 420)
-        Form.setMinimumSize(QtCore.QSize(660, 420))
-        Form.setMaximumSize(QtCore.QSize(660, 420))
-        self.verticalLayout_3 = QtWidgets.QVBoxLayout(Form)
+class Ui_MainWindow(QMainWindow):
+    def setupUi(self, MainWindow):
+        MainWindow.setObjectName("MainWindow")
+        MainWindow.setWindowModality(QtCore.Qt.WindowModal)
+        MainWindow.resize(680, 450)
+        MainWindow.setMinimumSize(QtCore.QSize(680, 450))
+        MainWindow.setMaximumSize(QtCore.QSize(680, 463))
+        self.centralwidget = QtWidgets.QWidget(MainWindow)
+        self.centralwidget.setObjectName("centralwidget")
+        self.verticalLayout_3 = QtWidgets.QVBoxLayout(self.centralwidget)
         self.verticalLayout_3.setObjectName("verticalLayout_3")
-        self.widget = QtWidgets.QWidget(Form)
+        self.widget = QtWidgets.QWidget(self.centralwidget)
         self.widget.setObjectName("widget")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.widget)
         self.verticalLayout.setObjectName("verticalLayout")
@@ -64,7 +68,7 @@ class Ui_Form(object):
         self.Cred3.setObjectName("Cred3")
         self.verticalLayout.addWidget(self.Cred3)
         self.verticalLayout_3.addWidget(self.widget)
-        self.widget_2 = QtWidgets.QWidget(Form)
+        self.widget_2 = QtWidgets.QWidget(self.centralwidget)
         self.widget_2.setObjectName("widget_2")
         self.verticalLayout_4 = QtWidgets.QVBoxLayout(self.widget_2)
         self.verticalLayout_4.setObjectName("verticalLayout_4")
@@ -99,7 +103,7 @@ class Ui_Form(object):
         self.Protect2.setObjectName("Protect2")
         self.verticalLayout_4.addWidget(self.Protect2)
         self.verticalLayout_3.addWidget(self.widget_2)
-        self.widget_3 = QtWidgets.QWidget(Form)
+        self.widget_3 = QtWidgets.QWidget(self.centralwidget)
         self.widget_3.setObjectName("widget_3")
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.widget_3)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
@@ -125,7 +129,7 @@ class Ui_Form(object):
         self.password.setObjectName("password")
         self.verticalLayout_2.addWidget(self.password)
         self.verticalLayout_3.addWidget(self.widget_3)
-        self.widget_4 = QtWidgets.QWidget(Form)
+        self.widget_4 = QtWidgets.QWidget(self.centralwidget)
         self.widget_4.setObjectName("widget_4")
         self.horizontalLayout = QtWidgets.QHBoxLayout(self.widget_4)
         self.horizontalLayout.setObjectName("horizontalLayout")
@@ -162,17 +166,29 @@ class Ui_Form(object):
         self.apply.setObjectName("apply")
         self.horizontalLayout.addWidget(self.apply)
         self.verticalLayout_3.addWidget(self.widget_4)
+        MainWindow.setCentralWidget(self.centralwidget)
+        self.menubar = QtWidgets.QMenuBar(MainWindow)
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 680, 26))
+        self.menubar.setObjectName("menubar")
+        MainWindow.setMenuBar(self.menubar)
+        self.statusbar = QtWidgets.QStatusBar(MainWindow)
+        self.statusbar.setObjectName("statusbar")
+        MainWindow.setStatusBar(self.statusbar)
 
-        self.retranslateUi(Form)
-        QtCore.QMetaObject.connectSlotsByName(Form)
+        self.retranslateUi(MainWindow)
+        QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
-    def retranslateUi(self, Form):
+    def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        Form.setWindowTitle(_translate("Form", "Credentials Decryption Options"))
-        self.label.setText(_translate("Form", "Windows Credentials Folders"))
-        self.label_2.setText(_translate("Form", "Protect folders"))
-        self.label_3.setText(_translate("Form", "Windows Login Password:"))
-        self.password.setPlaceholderText(_translate("Form", "logon password"))
-        self.pushButton.setText(_translate("Form", "OK"))
-        self.cancel.setText(_translate("Form", "Canccel"))
-        self.apply.setText(_translate("Form", "Apply"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "Credentials Decryption Options"))
+        self.label.setText(_translate("MainWindow", "Windows Credentials Folders"))
+        self.label_2.setText(_translate("MainWindow", "Protect folders"))
+        self.label_3.setText(_translate("MainWindow", "Windows Login Password:"))
+        self.password.setPlaceholderText(_translate("MainWindow", "logon password"))
+        self.pushButton.setText(_translate("MainWindow", "OK"))
+        self.cancel.setText(_translate("MainWindow", "Canccel"))
+        self.apply.setText(_translate("MainWindow", "Apply"))
+
+    def __init__(self):
+        super(Ui_MainWindow, self).__init__()
+        self.setupUi(self)

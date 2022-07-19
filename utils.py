@@ -49,7 +49,7 @@ def TryGetUserCredentials():
                 cred_file_list.append(full_path)
     if len(cred_file_list) == 0:
         print('Get Credentials file failed!')
-    return cred_file_list
+    return cred_file_list, sc_path
 
 
 def TryGetMasterKeyFile():
@@ -78,7 +78,7 @@ def TryGetMasterKeyFile():
 
     if len(sid_file) == 0:
         print('Get master key file failed!')
-    return sid_file
+    return sid_file, sc_path
 
 
 def exec(parser: ArgumentParser):
@@ -87,14 +87,14 @@ def exec(parser: ArgumentParser):
     search_cred = args.searchCred
     if search_key:
         print('** Master Key File **')
-        sid_file = TryGetMasterKeyFile()
+        sid_file, _ = TryGetMasterKeyFile()
         for sid in sid_file:
             print('**{', sid, '**}')
             for full_path in sid_file[sid]:
                 print(full_path)
     if search_cred:
         print('** Credentials Files **')
-        credentials = TryGetUserCredentials()
+        credentials, _ = TryGetUserCredentials()
         for full_path in credentials:
             print(full_path)
 

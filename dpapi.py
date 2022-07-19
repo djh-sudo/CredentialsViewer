@@ -51,8 +51,8 @@ def HandleSIDFile(sid_file: dict):
 
 
 def AutoGetCredentials(password: str, save_path: str = None, flag=True):
-    cred_files = utils.TryGetUserCredentials()
-    sid_file = utils.TryGetMasterKeyFile()
+    cred_files, _ = utils.TryGetUserCredentials()
+    sid_file, _ = utils.TryGetMasterKeyFile()
     cache_sid_file = HandleSIDFile(sid_file)
     if save_path:
         mk.SaveMasterKeyCSV(save_path)
@@ -71,6 +71,7 @@ def AutoGetCredentials(password: str, save_path: str = None, flag=True):
                 master_key.save(save_path)
                 enc.save(save_path)
                 cred.save(save_path)
+
 
 
 def exec(parser: ArgumentParser):
