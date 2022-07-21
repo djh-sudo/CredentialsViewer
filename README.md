@@ -57,3 +57,7 @@ pyinstaller CredentialViewer.py -F -p venv/Lib/site-packages
 ## END
 
 再次感谢`mimicatz`开源项目，`demo`文件因为相对隐私，所以没有给出，源代码仅供学习参考，请勿做其它非法等用途。详细过程[Also See](https://djh-sudo.github.io/Blog/#/windows/0708/README)
+
+## To be soved
+
+由于解密用到的填充算法和标准接口不一致，因此`pbkdf2`函数没有使用`python`封装好的接口，因此这个函数的性能很不好，导致整个解密过程很慢，使用`numba`似乎也无法加速。
