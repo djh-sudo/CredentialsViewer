@@ -61,15 +61,14 @@ def HMAC_pkcs5_pbkdf2(password: bytes, salt: bytes, iteration: int, dklen: int, 
             #     obuf_tmp += (obuf[i] ^ dl[i]).to_bytes(1, byteorder='big', signed=False)
             # obuf = obuf_tmp
             dl = obuf
-
         # =====================================================
-
         r = min(sizeHmac, out_key_len)
         dklen -= r
         count += 1
+        key += obuf
 
-    assert len(obuf) >= out_key_len
-    return obuf[:out_key_len].hex()
+    assert len(key) >= out_key_len
+    return key[:out_key_len].hex()
 
 
 def DecryptAES_CBC(key: bytes, msg: bytes, iv: bytes):
