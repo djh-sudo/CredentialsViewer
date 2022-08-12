@@ -1,0 +1,9 @@
+;
+; Definition file for the DLL version of the engines\ossltest library from OpenSSL
+;
+
+LIBRARY         "engines\ossltest"
+
+EXPORTS
+    bind_engine
+    v_check

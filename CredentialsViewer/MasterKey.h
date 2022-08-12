@@ -1,0 +1,195 @@
+#pragma once
+#include <string>
+#include <vector>
+#include <Windows.h>
+#include "CipherHelper.h"
+
+
+/*
+* This header file is about MASTERKEY
+* Keywords: MASTER KEY
+* Also See
+* https://github.com/gentilkiwi/mimikatz
+*/
+
+typedef struct _DPAPI_MASTERKEY_CREDHIST {
+	/* Off[DEC] Description */
+	/* 00 */    DWORD dwVersion;
+	/* 04 */    GUID guid;
+} DPAPI_MASTERKEY_CREDHIST, * P_DPAPI_MASTERKEY_CREDHIST;
+
+typedef struct _DPAPI_MASTERKEY_DOMAINKEY {
+	/* Off[DEC] Description */
+	/* 00 */    DWORD dwVersion;
+	/* 04 */    DWORD dwSecretLen;
+	/* 08 */    DWORD dwAccesscheckLen;
+	/* 12 */    GUID guidMasterKey;
+	/* 28 */    PBYTE pbSecret;
+	/* 32 */    PBYTE pbAccesscheck;
+} DPAPI_MASTERKEY_DOMAINKEY, * P_DPAPI_MASTERKEY_DOMAINKEY;
+
+typedef struct _DPAPI_MASTERKEY {
+	/* Off[DEC] Description */
+	/* 00 */    DWORD dwVersion;
+	/* 04 */    BYTE salt[16];
+	/* 20 */    DWORD rounds;
+	/* 24 */    ALG_ID algHash;
+	/* 28 */    ALG_ID algCrypt;
+	/* 32 */    BYTE pbKey[ANYSIZE_ARRAY];
+} DPAPI_MASTERKEY, * P_DPAPI_MASTERKEY;
+
+typedef struct _DPAPI_MASTERKEYS {
+	/* Off[DEC] Description */
+	/* 000 */   DWORD dwVersion;
+	/* 004 */   DWORD unk0;
+	/* 008 */   DWORD unk1;
+	/* 012 */   WCHAR szGuid[36];
+	/* 048 */   DWORD unk2;
+	/* 052 */   DWORD unk3;
+	/* 056 */   DWORD dwFlags;
+	/* 060 */   DWORD64 dwMasterKeyLen;
+	/* 068 */   DWORD64 dwBackupKeyLen;
+	/* 076 */   DWORD64 dwCredHistLen;
+	/* 084 */   DWORD64 dwDomainKeyLen;
+	/* 092 */   P_DPAPI_MASTERKEY MasterKey;
+	/* 096 */   P_DPAPI_MASTERKEY BackupKey;
+	/* 100 */   P_DPAPI_MASTERKEY_CREDHIST CredHist;
+	/* 104 */   P_DPAPI_MASTERKEY_DOMAINKEY DomainKey;
+} DPAPI_MASTERKEYS, * P_DPAPI_MASTERKEYS;
+
+typedef struct _DPAPI_BLOB {
+	/* Off[DEC]  Description */
+	/* acc is unfixed length accumulated! */
+	/*   00   */ DWORD dwVersion;
+	/*   04   */ GUID guidProvider;
+	/*   20   */ DWORD dwMasterKeyVersion;
+	/*   24   */ GUID guidMasterKey;
+	/*   40   */ DWORD dwFlags;
+	/*   44   */ DWORD dwDescriptionLen;
+	/* acc+48 */ WCHAR szDescription[ANYSIZE_ARRAY];
+	/* acc+48 */ ALG_ID algCrypt;
+	/* acc+52 */ DWORD dwAlgCryptLen;
+	/* acc+56 */ DWORD dwSaltLen;
+	/* acc+60 */ BYTE pbSalt[ANYSIZE_ARRAY];
+	/* acc+60 */ DWORD dwHmacKeyLen;
+	/* acc+64 */ BYTE pbHmackKey[ANYSIZE_ARRAY];
+	/* acc+64 */ ALG_ID algHash;
+	/* acc+68 */ DWORD dwAlgHashLen;
+	/* acc+72 */ DWORD dwHmac2KeyLen;
+	/* acc+76 */ BYTE pbHmack2Key[ANYSIZE_ARRAY];
+	/* acc+76 */ DWORD dwDataLen;
+	/* acc+80 */ BYTE pbData[ANYSIZE_ARRAY];
+	/* acc+80 */ DWORD dwSignLen;
+	/* acc+84 */ BYTE pbSign[ANYSIZE_ARRAY];
+} DPAPI_BLOB, * P_DPAPI_BLOB;
+
+
+class MasterKey {
+
+public:
+
+	bool Decrypt(const void * memory, const int szMemory) {
+		bool status = false;
+		P_DPAPI_MASTERKEYS masterKeys = NULL;
+		P_DPAPI_MASTERKEY masterKey = NULL;
+		do {
+			if (memory == NULL || szMemory <= 0) {
+				break;
+			}
+			// setting parameter
+			masterKeys = (P_DPAPI_MASTERKEYS)new BYTE[sizeof(DPAPI_MASTERKEYS) + 1];
+			memset(masterKeys, 0, sizeof(DPAPI_MASTERKEYS) + 1);
+			memcpy(masterKeys, (char*)memory, sizeof(DPAPI_MASTERKEYS));
+
+			masterKey = (P_DPAPI_MASTERKEY)new char[masterKeys->dwMasterKeyLen + 1];
+			memset(masterKey, 0, masterKeys->dwMasterKeyLen + 1);
+			memcpy(masterKey, (char *)memory + FIELD_OFFSET(DPAPI_MASTERKEYS, MasterKey), masterKeys->dwMasterKeyLen);
+
+			memcpy(m_salt, masterKey->salt, 16);
+			m_iterations = masterKey->rounds;
+
+			int szMasterKey = masterKeys->dwMasterKeyLen - FIELD_OFFSET(DPAPI_MASTERKEY, pbKey);
+			m_masterKey.resize(szMasterKey);
+			memcpy(m_masterKey.data(), masterKey->pbKey, szMasterKey);
+			// decrypt master key
+			std::string passHash = SSLHelper::sha1(m_password.data(), m_password.size());
+			std::string sha1DerivedKey = SSLHelper::HMAC_SHA1(passHash.c_str(), SHA_DIGEST_LENGTH, m_sid.data(), m_sid.size());
+			std::string HMACHash = SSLHelper::PBKDF2_SHA512(
+				/*password*/ sha1DerivedKey.c_str(), 20,
+				/*  salt  */ m_salt, 16,
+				/* rounds */ m_iterations, 48);
+
+			std::string key = HMACHash.substr(0, 32);
+			std::string iv = HMACHash.substr(32, 16);
+
+			std::string plain = SSLHelper::AesCBCDecrypt(m_masterKey.data(), szMasterKey, key.c_str(), 32, iv.c_str());
+			status = MemoryVerify(plain.c_str(), szMasterKey, sha1DerivedKey.c_str(), 20);
+			if (status == true) {
+				m_plainMasterKey.resize(szMasterKey - 80);
+				memcpy(m_plainMasterKey.data(), plain.c_str() + 80, szMasterKey - 80);
+			}
+		} while (false);
+
+		if (masterKeys != NULL) {
+			delete[] masterKeys;
+			masterKeys = NULL;
+		}
+
+		if (masterKey != NULL) {
+			delete[] masterKey;
+			masterKey = NULL;
+		}
+
+		return status;
+	}
+
+	bool MemoryVerify(const void * masterKey, int szKey, const void * shaDerivedKey, int szShaKey) {
+		bool status = false;
+		if (m_masterKey.size() <= 0 || shaDerivedKey == NULL) {
+			return false;
+		}
+
+		char salt[16] = { 0 };
+		char savedHash[64] = { 0 };
+
+		memcpy(salt, masterKey, 16);
+		memcpy(savedHash, (char *)masterKey + 16, 64);
+
+		std::string hmac1 = SSLHelper::HMAC_SHA512(shaDerivedKey, szShaKey, salt, 16);
+		std::string hmac2 = SSLHelper::HMAC_SHA512(hmac1.c_str(), SHA512_DIGEST_LENGTH, (char *)masterKey + 80, szKey - 80);
+
+		status = (memcmp(savedHash, hmac2.c_str(), SHA512_DIGEST_LENGTH) == 0);
+		return status;
+	}
+
+	void SetParameter(std::string& password, std::string& sid) {
+		for (auto& it : password) {
+			m_password.push_back(it);
+			m_password.push_back(0);
+		}
+		for (auto& it : sid) {
+			m_sid.push_back(it);
+			m_sid.push_back(0);
+		}
+		m_sid.push_back(0);
+		m_sid.push_back(0);
+	}
+
+	MasterKey() {
+		m_iterations = 0;
+		memset(m_salt, 0, 16);
+	}
+
+	~MasterKey() = default;
+
+private:
+	// extern parameter
+	std::vector<char> m_masterKey;
+	std::vector<char> m_password;
+	std::vector<char> m_sid;
+	
+	char m_salt[16];
+	std::vector<char> m_plainMasterKey;
+
+	int m_iterations;
+};

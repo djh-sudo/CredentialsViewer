@@ -1,0 +1,8 @@
+;
+; Definition file for the DLL version of the providers\legacy library from OpenSSL
+;
+
+LIBRARY         "providers\legacy"
+
+EXPORTS
+    OSSL_provider_init

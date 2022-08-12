@@ -1,0 +1,9 @@
+;
+; Definition file for the DLL version of the engines\padlock library from OpenSSL
+;
+
+LIBRARY         "engines\padlock"
+
+EXPORTS
+    bind_engine
+    v_check
