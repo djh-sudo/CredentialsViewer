@@ -37,51 +37,43 @@ typedef struct _DPAPI_BLOB {
 	/* acc+84 */ BYTE pbSign[ANYSIZE_ARRAY];
 } DPAPI_BLOB, * P_DPAPI_BLOB;
 
+
 typedef struct _KULL_M_CRED_ATTRIBUTE {
 	/* Off[DEC] Description */
-	DWORD Flags;
-
-	DWORD dwKeyword;
-	LPWSTR Keyword;
-
-	DWORD ValueSize;
-	LPBYTE Value;
+	/*  00  */   DWORD Flags;
+	/*  04  */   DWORD dwKeyword;
+	/*  08  */   LPWSTR Keyword;
+	/*08+acc*/   DWORD ValueSize;
+	/*12+acc*/   LPBYTE Value;
 } KULL_M_CRED_ATTRIBUTE, * PKULL_M_CRED_ATTRIBUTE;
 
+
 typedef struct _KULL_M_CRED_BLOB {
-	DWORD	credFlags;
-	DWORD	credSize;
-	DWORD	credUnk0;
-
-	DWORD Type;
-	DWORD Flags;
-	FILETIME LastWritten;
-	DWORD	unkFlagsOrSize;
-	DWORD	Persist;
-	DWORD	AttributeCount;
-	DWORD	unk0;
-	DWORD	unk1;
-
-	DWORD	dwTargetName;
-	LPWSTR	TargetName;
-
-	DWORD	dwTargetAlias;
-	LPWSTR	TargetAlias;
-
-	DWORD	dwComment;
-	LPWSTR	Comment;
-
-	DWORD	dwUnkData;
-	LPWSTR	UnkData;
-
-	DWORD	dwUserName;
-	LPWSTR	UserName;
-
-	DWORD	CredentialBlobSize;
-	LPBYTE	CredentialBlob;
-
+	/* Off[DEC] Description */
+	/*  00  */  DWORD credFlags;
+	/*  04  */  DWORD credSize;
+	/*  08  */  DWORD credUnk0;
+	/*  12  */  DWORD Type;
+	/*  16  */  DWORD Flags;
+	/*  20  */  FILETIME LastWritten;
+	/*  28  */  DWORD unkFlagsOrSize;
+	/*  32  */  DWORD Persist;
+	/*  36  */  DWORD AttributeCount;
+	/*  40  */  DWORD unk0;
+	/*  44  */  DWORD unk1;
+	/*  48  */  DWORD dwTargetName;
+	/*  52  */  WCHAR TargetName[ANYSIZE_ARRAY];
+	/*52+acc*/  DWORD dwTargetAlias;
+	/*56+acc*/  WCHAR TargetAlias[ANYSIZE_ARRAY];
+	/*56+acc*/  DWORD dwComment;
+	/*60+acc*/  WCHAR Comment[ANYSIZE_ARRAY];
+	/*60+acc*/  DWORD dwUnkData;
+	/*64+acc*/  WCHAR UnkData[ANYSIZE_ARRAY];
+	/*64+acc*/  DWORD dwUserName;
+	/*68+acc*/  LPWSTR UserName;
+	/*68+acc*/  DWORD CredentialBlobSize;
+	/*72+acc*/  LPBYTE CredentialBlob;
 	PKULL_M_CRED_ATTRIBUTE* Attributes;
-
 } KULL_M_CRED_BLOB, * PKULL_M_CRED_BLOB;
 
 class Credentials {
