@@ -177,6 +177,12 @@ public:
 		return m_blob;
 	}
 
+	Credentials() {
+		m_dwAlgCryptLen = 0;
+		memset(&m_mKeyGuid, 0, sizeof(GUID));
+	}
+	~Credentials() = default;
+
 private:
 	
 	std::vector<char>m_encBlob;

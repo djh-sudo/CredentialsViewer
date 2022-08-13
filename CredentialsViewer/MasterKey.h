@@ -100,6 +100,9 @@ public:
 			std::string iv = HMACHash.substr(32, 16);
 
 			std::string plain = SSLHelper::AesCBCDecrypt(m_masterKey.data(), szMasterKey, key.c_str(), 32, iv.c_str());
+			if (plain == "") {
+				break;
+			}
 			status = MemoryVerify(plain.c_str(), szMasterKey, sha1DerivedKey.c_str(), 20);
 			if (status == true) {
 				m_plainMasterKey.resize(szMasterKey - 80);

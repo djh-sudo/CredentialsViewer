@@ -15,11 +15,12 @@ using namespace std;
 
 bool Init(char *buffer, int&szBuffer, string path) {
 	bool flag = false;
+	FILE* fp = NULL;
 	do {
 		if (buffer == NULL) {
 			break;
 		}
-		FILE* fp = fopen(path.c_str(), "rb");
+		fp = fopen(path.c_str(), "rb");
 		if (fp == NULL) {
 			break;
 		}
@@ -32,7 +33,11 @@ bool Init(char *buffer, int&szBuffer, string path) {
 		}
 
 	} while (false);
-
+	if (fp) {
+		fclose(fp);
+		fp = NULL;
+	}
+	
 	return flag;
 }
 
