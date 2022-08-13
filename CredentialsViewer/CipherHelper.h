@@ -85,7 +85,7 @@ public:
 		int block_number = data_len >> 3;
 		szLen = block_number << 3;
 		for (int i = 0; i < block_number; ++i) {
-			memcpy(input, plain.c_str() + i * 8, 8);
+			memcpy(input, plain.c_str() + (i << 3), 8);
 			DES_ecb_encrypt(&input, &output, &keySchedule, DES_ENCRYPT);
 			res += std::string((char *)output, 8);
 		}
@@ -119,7 +119,7 @@ public:
 		int block_number = data_len >> 3;
 		szLen = block_number << 3;
 		for (int i = 0; i < block_number; ++i) {
-			memcpy(input, cipher.c_str() + i * 8, 8);
+			memcpy(input, cipher.c_str() + (i << 3), 8);
 			DES_ecb_encrypt(&input,&output,&keySchedule, DES_DECRYPT);
 			res += std::string((char *)output, 8);
 		}
@@ -159,12 +159,12 @@ public:
 		}
 
 		// 
-		unsigned char output[AES_BLOCK_SIZE];
-		unsigned char input[AES_BLOCK_SIZE];
+		unsigned char output[AES_BLOCK_SIZE] = { 0 };
+		unsigned char input[AES_BLOCK_SIZE] = { 0 };
 		std::string res = "";
 		int block_num = szLen >> 4;
 		for (int i = 0; i < block_num; ++i) {
-			memcpy(input, data.c_str() + i * AES_BLOCK_SIZE, AES_BLOCK_SIZE);
+			memcpy(input, data.c_str() + (i << 4), AES_BLOCK_SIZE);
 			memset(output, 0, AES_BLOCK_SIZE);
 			AES_cbc_encrypt((const unsigned char *)input, output, AES_BLOCK_SIZE, &aes_key, (unsigned char *)iv, AES_ENCRYPT);
 			res += std::string((const char *)output, AES_BLOCK_SIZE);
@@ -178,13 +178,13 @@ public:
 			return "";
 		}
 		// 
-		unsigned char output[AES_BLOCK_SIZE];
-		unsigned char input[AES_BLOCK_SIZE];
+		unsigned char output[AES_BLOCK_SIZE] = { 0 };
+		unsigned char input[AES_BLOCK_SIZE] = { 0 };
 		std::string res = "";
 		int block_num = data_len >> 4;
 		for (int i = 0; i < block_num; ++i) {
 			memset(output, 0, AES_BLOCK_SIZE);
-			memcpy(input, (char *)src + i * AES_BLOCK_SIZE, AES_BLOCK_SIZE);
+			memcpy(input, (char *)src + (i << 4), AES_BLOCK_SIZE);
 			AES_cbc_encrypt((const unsigned char *)input, output, AES_BLOCK_SIZE, &aes_key, (unsigned char *)iv, AES_DECRYPT);
 			res += std::string((char *)output, AES_BLOCK_SIZE);
 		}
@@ -206,7 +206,9 @@ public:
 		if (AES_set_encrypt_key((unsigned char *)key, key_len << 3, &aes_key) < 0) {
 			return "";
 		}
-
+		if (data_len >= INT_MAX) {
+			return "";
+		}
 		int padding = 0;
 		// ZeroPadding
 		if (data_len % AES_BLOCK_SIZE > 0) {
@@ -229,7 +231,7 @@ public:
 		std::string res = "";
 		int block_num = szLen >> 4;
 		for (int i = 0; i < block_num; ++i) {
-			memcpy(input, data.c_str() + i * AES_BLOCK_SIZE, AES_BLOCK_SIZE);
+			memcpy(input, data.c_str() + (i << 4), AES_BLOCK_SIZE);
 			memset(output, 0, AES_BLOCK_SIZE);
 			AES_ecb_encrypt((const unsigned char *)input, output, &aes_key, AES_ENCRYPT);
 			res += std::string((const char *)output, AES_BLOCK_SIZE);
@@ -242,14 +244,17 @@ public:
 		if (AES_set_decrypt_key((const unsigned char *)key, key_len << 3, &aes_key) < 0) {
 			return "";
 		}
+		if (data_len >= INT_MAX) {
+			return "";
+		}
 		// 
-		unsigned char output[AES_BLOCK_SIZE];
-		unsigned char input[AES_BLOCK_SIZE];
+		unsigned char output[AES_BLOCK_SIZE] = { 0 };
+		unsigned char input[AES_BLOCK_SIZE] = { 0 };
 		std::string res = "";
 		int block_num = data_len >> 4;
 		for (int i = 0; i < block_num; ++i) {
 			memset(output, 0, AES_BLOCK_SIZE);
-			memcpy(input, (char *)src + i * AES_BLOCK_SIZE, AES_BLOCK_SIZE);
+			memcpy(input, (char *)src + (i << 4), AES_BLOCK_SIZE);
 			AES_ecb_encrypt((const unsigned char *)input, output, &aes_key, AES_DECRYPT);
 			res += std::string((char *)output, AES_BLOCK_SIZE);
 		}

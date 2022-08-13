@@ -2,10 +2,11 @@
 #include <iostream>
 #include <string>
 #include "MasterKey.h"
+#include "Credentials.h"
 
 
 using namespace std;
-#define MAX_LEN 2048
+#define MAX_LEN 4096
 /*
 * User protect directory
 * C:\Users\Administrator\AppData\Roaming\Microsoft\Protect
@@ -13,13 +14,13 @@ using namespace std;
 * C:/Users/Administrator/AppData/Roaming/Microsoft/Credentials
 */
 
-bool Init(char *buffer, int&szBuffer) {
+bool Init(char *buffer, int&szBuffer, string path) {
 	bool flag = false;
 	do {
 		if (buffer == NULL) {
 			break;
 		}
-		FILE* fp = fopen("../test/71739bfb-e3f1-4c2b-ab20-05b9655543b4", "rb");
+		FILE* fp = fopen(path.c_str(), "rb");
 		if (fp == NULL) {
 			break;
 		}
@@ -41,29 +42,52 @@ int main() {
 	* test demo
 	*/
 	char * buffer = new char[MAX_LEN];
-	int szBuffer = 0;
+	char* key = new char[MAX_LEN];
+	int szBuffer = 0, szKey = 0;;
 	bool flag = false;
 	memset(buffer, 0, MAX_LEN);
-	string sid = "S-1-5-21-2300453706-2493150108-2793419970-500";
-	string passsword = "123456";
+	string sid = "******";
+	string passsword = "******";
 	MasterKey mKey;
+	Credentials credentials;
+
 	do {
-		flag = Init(buffer, szBuffer);
+		// credential File
+		flag = Init(buffer, szBuffer, "../test/694A68E201EB5A1142AE8ACFB8BEA4AC");
+		if (flag == false) {
+			break;
+		}
+		flag = credentials.Init(buffer, szBuffer);
+		if (flag == false) {
+			break;
+		}
+		std::string guid = credentials.GetGUID();
+		flag = Init(key, szKey, "../test/" + guid);
 		if (flag == false) {
 			break;
 		}
 		mKey.SetParameter(passsword, sid);
-		flag = mKey.Decrypt(buffer, szBuffer);
+		flag = mKey.Decrypt(key, szKey);
 		if (flag == false) {
 			break;
 		}
+
+		credentials.Decrypt(mKey.GetMasterKey().data(), mKey.GetMasterKey().size());
 	
 	} while (false);
 
+	/*
+	* Ending ...
+	*/
 	if (buffer != NULL) {
 		delete[] buffer;
 		buffer = NULL;
 	}
+	if (key != NULL) {
+		delete[] key;
+		key = NULL;
+	}
+
 	system("pause");
 	return 0;
 }

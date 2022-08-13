@@ -57,38 +57,12 @@ typedef struct _DPAPI_MASTERKEYS {
 	/* 104 */   P_DPAPI_MASTERKEY_DOMAINKEY DomainKey;
 } DPAPI_MASTERKEYS, * P_DPAPI_MASTERKEYS;
 
-typedef struct _DPAPI_BLOB {
-	/* Off[DEC]  Description */
-	/* acc is unfixed length accumulated! */
-	/*   00   */ DWORD dwVersion;
-	/*   04   */ GUID guidProvider;
-	/*   20   */ DWORD dwMasterKeyVersion;
-	/*   24   */ GUID guidMasterKey;
-	/*   40   */ DWORD dwFlags;
-	/*   44   */ DWORD dwDescriptionLen;
-	/* acc+48 */ WCHAR szDescription[ANYSIZE_ARRAY];
-	/* acc+48 */ ALG_ID algCrypt;
-	/* acc+52 */ DWORD dwAlgCryptLen;
-	/* acc+56 */ DWORD dwSaltLen;
-	/* acc+60 */ BYTE pbSalt[ANYSIZE_ARRAY];
-	/* acc+60 */ DWORD dwHmacKeyLen;
-	/* acc+64 */ BYTE pbHmackKey[ANYSIZE_ARRAY];
-	/* acc+64 */ ALG_ID algHash;
-	/* acc+68 */ DWORD dwAlgHashLen;
-	/* acc+72 */ DWORD dwHmac2KeyLen;
-	/* acc+76 */ BYTE pbHmack2Key[ANYSIZE_ARRAY];
-	/* acc+76 */ DWORD dwDataLen;
-	/* acc+80 */ BYTE pbData[ANYSIZE_ARRAY];
-	/* acc+80 */ DWORD dwSignLen;
-	/* acc+84 */ BYTE pbSign[ANYSIZE_ARRAY];
-} DPAPI_BLOB, * P_DPAPI_BLOB;
-
 
 class MasterKey {
 
 public:
 
-	bool Decrypt(const void * memory, const int szMemory) {
+	bool Decrypt(const void * memory, int szMemory) {
 		bool status = false;
 		P_DPAPI_MASTERKEYS masterKeys = NULL;
 		P_DPAPI_MASTERKEY masterKey = NULL;
@@ -109,6 +83,9 @@ public:
 			m_iterations = masterKey->rounds;
 
 			int szMasterKey = masterKeys->dwMasterKeyLen - FIELD_OFFSET(DPAPI_MASTERKEY, pbKey);
+			if (szMasterKey < 80) {
+				break;
+			}
 			m_masterKey.resize(szMasterKey);
 			memcpy(m_masterKey.data(), masterKey->pbKey, szMasterKey);
 			// decrypt master key
@@ -162,7 +139,7 @@ public:
 		return status;
 	}
 
-	void SetParameter(std::string& password, std::string& sid) {
+	void SetParameter(const std::string& password, const std::string& sid) {
 		for (auto& it : password) {
 			m_password.push_back(it);
 			m_password.push_back(0);
@@ -173,6 +150,10 @@ public:
 		}
 		m_sid.push_back(0);
 		m_sid.push_back(0);
+	}
+
+	const std::vector<char>& GetMasterKey() {
+		return m_plainMasterKey;
 	}
 
 	MasterKey() {

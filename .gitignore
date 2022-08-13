@@ -37,3 +37,4 @@ Debug/
 x64/
 *.filters
 *.user
+test/

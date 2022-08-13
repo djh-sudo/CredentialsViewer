@@ -2,6 +2,8 @@
 #include <string>
 #include <vector>
 #include <Windows.h>
+#include "CipherHelper.h"
+
 
 /*
 * This header file is about DPAPI BLOB
@@ -9,6 +11,13 @@
 * Also See
 * https://github.com/gentilkiwi/mimikatz
 */
+
+typedef struct _DPAPI_ENCRYPTED_CRED {
+	DWORD version;
+	DWORD blobSize;
+	DWORD unk;
+	BYTE blob[ANYSIZE_ARRAY];
+} DPAPI_ENCRYPTED_CRED, * P_DPAPI_ENCRYPTED_CRED;
 
 
 typedef struct _DPAPI_BLOB {
@@ -37,18 +46,17 @@ typedef struct _DPAPI_BLOB {
 	/* acc+84 */ BYTE pbSign[ANYSIZE_ARRAY];
 } DPAPI_BLOB, * P_DPAPI_BLOB;
 
-
-typedef struct _KULL_M_CRED_ATTRIBUTE {
+typedef struct _CRED_ATTRIBUTE {
 	/* Off[DEC] Description */
 	/*  00  */   DWORD Flags;
 	/*  04  */   DWORD dwKeyword;
 	/*  08  */   LPWSTR Keyword;
 	/*08+acc*/   DWORD ValueSize;
 	/*12+acc*/   LPBYTE Value;
-} KULL_M_CRED_ATTRIBUTE, * PKULL_M_CRED_ATTRIBUTE;
+} CRED_ATTRIBUTE, * P_CRED_ATTRIBUTE;
 
 
-typedef struct _KULL_M_CRED_BLOB {
+typedef struct _CRED_BLOB {
 	/* Off[DEC] Description */
 	/*  00  */  DWORD credFlags;
 	/*  04  */  DWORD credSize;
@@ -73,27 +81,75 @@ typedef struct _KULL_M_CRED_BLOB {
 	/*68+acc*/  LPWSTR UserName;
 	/*68+acc*/  DWORD CredentialBlobSize;
 	/*72+acc*/  LPBYTE CredentialBlob;
-	PKULL_M_CRED_ATTRIBUTE* Attributes;
-} KULL_M_CRED_BLOB, * PKULL_M_CRED_BLOB;
+	P_CRED_ATTRIBUTE* Attributes;
+} CRED_BLOB, * P_CRED_BLOB;
 
 class Credentials {
 
 public:
 
-	bool Init(const void* memory, int szMemory) {
+	bool Init(const void * memory, int szMemory) {
 		bool flag = false;
-		
+		DWORD acc = 0, dwSaltLen = 0, dwDataLen = 0, dwDescriptionLen = 0;
 		do {
+			if (memory == NULL || szMemory <= sizeof(DPAPI_BLOB)) {
+				break;
+			}
+			int szTotal = ((P_DPAPI_ENCRYPTED_CRED)memory)->blobSize;
+			acc = 12;
+			if (szMemory != (szTotal + 12)) {
+				break;
+			}
+			m_mKeyGuid = ((P_DPAPI_BLOB)((char*)memory + acc))->guidMasterKey;
+
+			dwDescriptionLen = ((P_DPAPI_BLOB)((char*)memory + acc))->dwDescriptionLen;
+			m_description = std::wstring(((P_DPAPI_BLOB)((char*)memory + acc))->szDescription, dwDescriptionLen);
+			acc += dwDescriptionLen;
+			
+			m_dwAlgCryptLen = *(PDWORD)((char*)memory + acc + 52);
+			dwSaltLen = *(PDWORD)((char *)memory + acc + 56);
+			
+			m_salt.resize(dwSaltLen);
+			memcpy(m_salt.data(), ((char *)memory + acc + 60), dwSaltLen);
+			acc += dwSaltLen;
+			
+			acc += *(PDWORD)((char*)memory + acc + 60);
+			acc += *(PDWORD)((char*)memory + acc + 72);
+
+			dwDataLen = *(PDWORD)((char*)memory + acc + 76);
+			m_encBlob.resize(dwDataLen);
+			memcpy(m_encBlob.data(), ((char *)memory + acc + 80), dwDataLen);
+			acc += dwDataLen;
+			
+			acc += *(PDWORD)((char*)memory + acc + 80);
+			if (acc + 84 != szMemory) {
+				break;
+			}
+			flag = true;
 
 		} while (false);
 
 		return flag;
 	}
 
-	bool Decrypt(const void* memory, int szMemory) {
+	bool Decrypt(const void * key, int szKey) {
 		bool flag = false;
 		do {
-			
+			std::string sha1Key = SSLHelper::sha1(key, szKey);
+			std::string outKey = SSLHelper::HMAC_SHA512(sha1Key.c_str(), SHA_DIGEST_LENGTH, m_salt.data(), m_salt.size());
+			int szOutKey = m_dwAlgCryptLen >> 3;
+			if (szOutKey > SHA512_DIGEST_LENGTH) {
+				break;
+			}
+			outKey = outKey.substr(0, szOutKey);
+			// Decrypt
+			m_blob.resize(m_encBlob.size());
+			std::string plain = SSLHelper::AesECBDecrypt(m_encBlob.data(), m_encBlob.size(), outKey.c_str(), szOutKey);
+			if (plain == "") {
+				break;
+			}
+			memcpy(m_blob.data(), plain.c_str(), m_encBlob.size());
+			flag = true;
 
 		} while (false);
 
@@ -101,7 +157,13 @@ public:
 	}
 
 	std::string GetGUID() {
-		return "";
+		char guidBuffer[64] = { 0 };
+		sprintf(guidBuffer, "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x", 
+			   m_mKeyGuid.Data1, m_mKeyGuid.Data2, m_mKeyGuid.Data3,
+			   m_mKeyGuid.Data4[0], m_mKeyGuid.Data4[1], m_mKeyGuid.Data4[2],
+			   m_mKeyGuid.Data4[3], m_mKeyGuid.Data4[4], m_mKeyGuid.Data4[5],
+			   m_mKeyGuid.Data4[6], m_mKeyGuid.Data4[7]);
+		return std::string(guidBuffer);
 	}
 
 private:
@@ -111,5 +173,6 @@ private:
 	
 	std::vector<char>m_salt;
 	GUID m_mKeyGuid;
-	
+	DWORD m_dwAlgCryptLen;
+	std::wstring m_description;
 };
