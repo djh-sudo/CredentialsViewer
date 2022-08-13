@@ -55,7 +55,7 @@ typedef struct _CRED_ATTRIBUTE {
 	/*12+acc*/   LPBYTE Value;
 } CRED_ATTRIBUTE, * P_CRED_ATTRIBUTE;
 
-
+#pragma pack(push, 4)
 typedef struct _CRED_BLOB {
 	/* Off[DEC] Description */
 	/*  00  */  DWORD credFlags;
@@ -78,11 +78,13 @@ typedef struct _CRED_BLOB {
 	/*60+acc*/  DWORD dwUnkData;
 	/*64+acc*/  WCHAR UnkData[ANYSIZE_ARRAY];
 	/*64+acc*/  DWORD dwUserName;
-	/*68+acc*/  LPWSTR UserName;
+	/*68+acc*/  WCHAR UserName[ANYSIZE_ARRAY];
 	/*68+acc*/  DWORD CredentialBlobSize;
-	/*72+acc*/  LPBYTE CredentialBlob;
+	/*72+acc*/  WCHAR CredentialBlob[ANYSIZE_ARRAY];
 	P_CRED_ATTRIBUTE* Attributes;
 } CRED_BLOB, * P_CRED_BLOB;
+#pragma pack(pop)
+
 
 class Credentials {
 
@@ -103,7 +105,7 @@ public:
 			m_mKeyGuid = ((P_DPAPI_BLOB)((char*)memory + acc))->guidMasterKey;
 
 			dwDescriptionLen = ((P_DPAPI_BLOB)((char*)memory + acc))->dwDescriptionLen;
-			m_description = std::wstring(((P_DPAPI_BLOB)((char*)memory + acc))->szDescription, dwDescriptionLen);
+			m_description = std::wstring(((P_DPAPI_BLOB)((char*)memory + acc))->szDescription, dwDescriptionLen >> 1);
 			acc += dwDescriptionLen;
 			
 			m_dwAlgCryptLen = *(PDWORD)((char*)memory + acc + 52);
@@ -113,8 +115,8 @@ public:
 			memcpy(m_salt.data(), ((char *)memory + acc + 60), dwSaltLen);
 			acc += dwSaltLen;
 			
-			acc += *(PDWORD)((char*)memory + acc + 60);
-			acc += *(PDWORD)((char*)memory + acc + 72);
+			acc += *(PDWORD)((char *)memory + acc + 60);
+			acc += *(PDWORD)((char *)memory + acc + 72);
 
 			dwDataLen = *(PDWORD)((char*)memory + acc + 76);
 			m_encBlob.resize(dwDataLen);
@@ -134,6 +136,7 @@ public:
 
 	bool Decrypt(const void * key, int szKey) {
 		bool flag = false;
+		char iv[16] = { 0 };
 		do {
 			std::string sha1Key = SSLHelper::sha1(key, szKey);
 			std::string outKey = SSLHelper::HMAC_SHA512(sha1Key.c_str(), SHA_DIGEST_LENGTH, m_salt.data(), m_salt.size());
@@ -144,7 +147,7 @@ public:
 			outKey = outKey.substr(0, szOutKey);
 			// Decrypt
 			m_blob.resize(m_encBlob.size());
-			std::string plain = SSLHelper::AesECBDecrypt(m_encBlob.data(), m_encBlob.size(), outKey.c_str(), szOutKey);
+			std::string plain = SSLHelper::AesCBCDecrypt(m_encBlob.data(), m_encBlob.size(), outKey.c_str(), szOutKey, iv);
 			if (plain == "") {
 				break;
 			}
@@ -164,6 +167,14 @@ public:
 			   m_mKeyGuid.Data4[3], m_mKeyGuid.Data4[4], m_mKeyGuid.Data4[5],
 			   m_mKeyGuid.Data4[6], m_mKeyGuid.Data4[7]);
 		return std::string(guidBuffer);
+	}
+
+	std::wstring GetDescription() {
+		return m_description;
+	}
+
+	std::vector<char>& GetBlob() {
+		return m_blob;
 	}
 
 private:

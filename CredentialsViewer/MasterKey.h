@@ -62,7 +62,7 @@ class MasterKey {
 
 public:
 
-	bool Decrypt(const void * memory, int szMemory) {
+	bool Decrypt(const void const * memory, int szMemory) {
 		bool status = false;
 		P_DPAPI_MASTERKEYS masterKeys = NULL;
 		P_DPAPI_MASTERKEY masterKey = NULL;

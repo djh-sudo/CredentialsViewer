@@ -22,11 +22,11 @@ class SSLHelper{
 public:
 
 	// base function
-	static std::string EncodeHex(std::string str, int len) {
+	static std::string EncodeHex(const void * str, int len) {
 		std::string res = "";
-		char tmp[3] = {0};
+		char tmp[3] = { 0 };
 		for (int i = 0; i < len; ++i) {
-			sprintf_s(tmp, "%02x", (unsigned char)str.c_str()[i]);
+			sprintf_s(tmp, "%02x", *((unsigned char *)str + i));
 			res += tmp;
 		}
 		return res;

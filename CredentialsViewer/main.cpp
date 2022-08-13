@@ -1,8 +1,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <string>
-#include "MasterKey.h"
-#include "Credentials.h"
+#include "Analyse.h"
 
 
 using namespace std;
@@ -46,10 +45,12 @@ int main() {
 	int szBuffer = 0, szKey = 0;;
 	bool flag = false;
 	memset(buffer, 0, MAX_LEN);
+	memset(key, 0, MAX_LEN);
+
 	string sid = "******";
 	string passsword = "******";
-	MasterKey mKey;
-	Credentials credentials;
+
+	CredentialsViewer viewer;
 
 	do {
 		// credential File
@@ -57,25 +58,34 @@ int main() {
 		if (flag == false) {
 			break;
 		}
-		flag = credentials.Init(buffer, szBuffer);
+		// step 1 Initial
+		flag = viewer.Init(buffer, szBuffer, passsword, sid);
 		if (flag == false) {
 			break;
 		}
-		std::string guid = credentials.GetGUID();
+
+		std::string guid = viewer.GetGUID();
 		flag = Init(key, szKey, "../test/" + guid);
 		if (flag == false) {
 			break;
 		}
-		mKey.SetParameter(passsword, sid);
-		flag = mKey.Decrypt(key, szKey);
+
+		// Step 2 Decrypt
+		flag = viewer.Decrypt(key, szKey);
 		if (flag == false) {
 			break;
 		}
 
-		credentials.Decrypt(mKey.GetMasterKey().data(), mKey.GetMasterKey().size());
-	
 	} while (false);
 
+	wcout.imbue(locale("chs"));
+	cout << "Analysis result: " << endl;
+	wcout << L"Description" << viewer.GetDescription() << endl;
+	wcout << "User name: " << viewer.GetTargetName() << endl;
+	wcout << L"Target Name: " << viewer.GetUserName() << endl;
+	cout << " Last written time: " << viewer.GetLastWritten() << endl;
+	cout << "Credential Blob: " << viewer.GetCredBlob() << endl;
+	
 	/*
 	* Ending ...
 	*/
