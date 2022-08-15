@@ -175,11 +175,11 @@ public:
 
 	std::string GetGUID() {
 		char guidBuffer[64] = { 0 };
-		sprintf(guidBuffer, "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x", 
-			   m_mKeyGuid.Data1, m_mKeyGuid.Data2, m_mKeyGuid.Data3,
-			   m_mKeyGuid.Data4[0], m_mKeyGuid.Data4[1], m_mKeyGuid.Data4[2],
-			   m_mKeyGuid.Data4[3], m_mKeyGuid.Data4[4], m_mKeyGuid.Data4[5],
-			   m_mKeyGuid.Data4[6], m_mKeyGuid.Data4[7]);
+		sprintf_s(guidBuffer, "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x", 
+			    m_mKeyGuid.Data1, m_mKeyGuid.Data2, m_mKeyGuid.Data3,
+			    m_mKeyGuid.Data4[0], m_mKeyGuid.Data4[1], m_mKeyGuid.Data4[2],
+			    m_mKeyGuid.Data4[3], m_mKeyGuid.Data4[4], m_mKeyGuid.Data4[5],
+			    m_mKeyGuid.Data4[6], m_mKeyGuid.Data4[7]);
 		return std::string(guidBuffer);
 	}
 

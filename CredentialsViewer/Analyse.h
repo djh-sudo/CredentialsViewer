@@ -133,9 +133,9 @@ private:
 			if (flag == false) {
 				break;
 			}
-			sprintf(timeStamp, "%04d/%02d/%02d %02d:%02d:%02d",
-				sysTime.wYear, sysTime.wMonth, sysTime.wDay,
-				sysTime.wHour, sysTime.wMinute, sysTime.wSecond);
+			sprintf_s(timeStamp, "%04d/%02d/%02d %02d:%02d:%02d",
+				    sysTime.wYear, sysTime.wMonth, sysTime.wDay,
+				    sysTime.wHour, sysTime.wMinute, sysTime.wSecond);
 			m_lastWritten = std::string(timeStamp);
 
 		} while (false);

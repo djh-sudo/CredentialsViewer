@@ -8,9 +8,9 @@ using namespace std;
 #define MAX_LEN 4096
 /*
 * User protect directory
-* C:\Users\Administrator\AppData\Roaming\Microsoft\Protect
+* C:\Users\%USERNAME%\AppData\Roaming\Microsoft\Protect
 * Credentials file directory
-* C:/Users/Administrator/AppData/Roaming/Microsoft/Credentials
+* C:/Users/%USERNAME%/AppData/Roaming/Microsoft/Credentials
 */
 
 bool Init(char *buffer, int&szBuffer, string path) {
@@ -47,7 +47,7 @@ int main() {
 	*/
 	char * buffer = new char[MAX_LEN];
 	char * key = new char[MAX_LEN];
-	int szBuffer = 0, szKey = 0;;
+	int szBuffer = 0, szKey = 0;
 	bool flag = false;
 	memset(buffer, 0, MAX_LEN);
 	memset(key, 0, MAX_LEN);
@@ -59,7 +59,7 @@ int main() {
 
 	do {
 		// credential File
-		flag = Init(buffer, szBuffer, "../test/6FD3FB652B5A61B4225D169E4B4565AA");
+		flag = Init(buffer, szBuffer, "../test/138FE05C05C8EACA25971A8C1AA90D72");
 		if (flag == false) {
 			break;
 		}
