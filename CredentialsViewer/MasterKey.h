@@ -62,7 +62,7 @@ class MasterKey {
 
 public:
 
-	bool Decrypt(const void const * memory, int szMemory) {
+	bool Decrypt(const void * memory, int szMemory) {
 		bool status = false;
 		P_DPAPI_MASTERKEYS masterKeys = NULL;
 		P_DPAPI_MASTERKEY masterKey = NULL;
@@ -73,7 +73,7 @@ public:
 			// setting parameter
 			masterKeys = (P_DPAPI_MASTERKEYS)new BYTE[sizeof(DPAPI_MASTERKEYS) + 1];
 			memset(masterKeys, 0, sizeof(DPAPI_MASTERKEYS) + 1);
-			memcpy(masterKeys, (char*)memory, sizeof(DPAPI_MASTERKEYS));
+			memcpy(masterKeys, (char *)memory, sizeof(DPAPI_MASTERKEYS));
 
 			masterKey = (P_DPAPI_MASTERKEY)new char[masterKeys->dwMasterKeyLen + 1];
 			memset(masterKey, 0, masterKeys->dwMasterKeyLen + 1);

@@ -9,7 +9,7 @@ class CredentialsViewer {
 
 public:
 
-	bool Init(const void const* memory, int szMemory, std::string psw, std::string sid) {
+	bool Init(const void * memory, int szMemory, std::string psw, std::string sid) {
 		bool flag = false;
 		do {
 			flag = m_credential.Init(memory, szMemory);
@@ -21,7 +21,7 @@ public:
 		return flag;
 	}
 
-	bool Decrypt(const void const * memory, int szMemory) {
+	bool Decrypt(const void * memory, int szMemory) {
 		bool flag = false;
 		DWORD szBlob = 0, szCred = 0, acc = 0, szUsername = 0, szCredentialBlob = 0;
 		std::vector<char>blob;
@@ -36,12 +36,15 @@ public:
 			if (flag == false) {
 				break;
 			}
+
 			m_description = m_credential.GetDescription();
 			szBlob = m_credential.GetBlob().size();
 			blob.resize(szBlob);
 			memcpy(blob.data(), m_credential.GetBlob().data(), szBlob);
+			
 			szCred = ((P_CRED_BLOB)(blob.data()))->credSize;
-			if (szCred + 4 != szBlob) {
+			if (szCred != szBlob) {
+				flag = false;
 				break;
 			}
 
@@ -52,7 +55,7 @@ public:
 
 			acc = ((P_CRED_BLOB)blob.data())->dwTargetName;
 			m_targetName.resize(acc);
-			memcpy((char*)m_targetName.c_str(), blob.data() + 52, acc);
+			memcpy((char *)m_targetName.c_str(), blob.data() + 52, acc);
 
 			acc += *(PWORD)(blob.data() + 52 + acc);
 			acc += *(PWORD)(blob.data() + 56 + acc);
@@ -68,6 +71,7 @@ public:
 			memcpy((char *)m_credentialBlob.data(), blob.data() + 72 + acc, szCredentialBlob);
 			acc += szCredentialBlob;
 			if (acc + 72 != szCred) {
+				flag = false;
 				break;
 			}
 			flag = true;

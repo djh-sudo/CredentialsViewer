@@ -102,13 +102,13 @@ public:
 			if (szMemory != (szTotal + 12)) {
 				break;
 			}
-			m_mKeyGuid = ((P_DPAPI_BLOB)((char*)memory + acc))->guidMasterKey;
+			m_mKeyGuid = ((P_DPAPI_BLOB)((char *)memory + acc))->guidMasterKey;
 
-			dwDescriptionLen = ((P_DPAPI_BLOB)((char*)memory + acc))->dwDescriptionLen;
-			m_description = std::wstring(((P_DPAPI_BLOB)((char*)memory + acc))->szDescription, dwDescriptionLen >> 1);
+			dwDescriptionLen = ((P_DPAPI_BLOB)((char *)memory + acc))->dwDescriptionLen;
+			m_description = std::wstring(((P_DPAPI_BLOB)((char *)memory + acc))->szDescription, dwDescriptionLen >> 1);
 			acc += dwDescriptionLen;
 			
-			m_dwAlgCryptLen = *(PDWORD)((char*)memory + acc + 52);
+			m_dwAlgCryptLen = *(PDWORD)((char *)memory + acc + 52);
 			dwSaltLen = *(PDWORD)((char *)memory + acc + 56);
 			
 			m_salt.resize(dwSaltLen);
@@ -118,12 +118,12 @@ public:
 			acc += *(PDWORD)((char *)memory + acc + 60);
 			acc += *(PDWORD)((char *)memory + acc + 72);
 
-			dwDataLen = *(PDWORD)((char*)memory + acc + 76);
+			dwDataLen = *(PDWORD)((char *)memory + acc + 76);
 			m_encBlob.resize(dwDataLen);
 			memcpy(m_encBlob.data(), ((char *)memory + acc + 80), dwDataLen);
 			acc += dwDataLen;
 			
-			acc += *(PDWORD)((char*)memory + acc + 80);
+			acc += *(PDWORD)((char *)memory + acc + 80);
 			if (acc + 84 != szMemory) {
 				break;
 			}
@@ -146,12 +146,26 @@ public:
 			}
 			outKey = outKey.substr(0, szOutKey);
 			// Decrypt
-			m_blob.resize(m_encBlob.size());
 			std::string plain = SSLHelper::AesCBCDecrypt(m_encBlob.data(), m_encBlob.size(), outKey.c_str(), szOutKey, iv);
 			if (plain == "") {
 				break;
 			}
-			memcpy(m_blob.data(), plain.c_str(), m_encBlob.size());
+			if (plain.back() >= 0 && plain.back() <= 0x10) {
+				int padding = plain.back(), index = plain.size();
+				bool check = true;
+				for (int i = 0; i < padding; ++i) {
+					if (plain[index - 1 - i] != padding) {
+						check = false;
+						break;
+					}
+				}
+				if (check == true) {
+					plain = plain.substr(0, index - padding);
+				}
+			}
+			m_blob.resize(plain.size());
+			memcpy(m_blob.data(), plain.c_str(), plain.size());
+
 			flag = true;
 
 		} while (false);

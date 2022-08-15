@@ -46,20 +46,20 @@ int main() {
 	* test demo
 	*/
 	char * buffer = new char[MAX_LEN];
-	char* key = new char[MAX_LEN];
+	char * key = new char[MAX_LEN];
 	int szBuffer = 0, szKey = 0;;
 	bool flag = false;
 	memset(buffer, 0, MAX_LEN);
 	memset(key, 0, MAX_LEN);
 
-	string sid = "******";
-	string passsword = "******";
+	string sid = "S-1-5-21-2300453706-2493150108-2793419970-500";
+	string passsword = "123456";
 
 	CredentialsViewer viewer;
 
 	do {
 		// credential File
-		flag = Init(buffer, szBuffer, "../test/694A68E201EB5A1142AE8ACFB8BEA4AC");
+		flag = Init(buffer, szBuffer, "../test/6FD3FB652B5A61B4225D169E4B4565AA");
 		if (flag == false) {
 			break;
 		}
@@ -70,7 +70,7 @@ int main() {
 		}
 
 		std::string guid = viewer.GetGUID();
-		flag = Init(key, szKey, "../test/" + guid);
+		flag = Init(key, szKey, "C:/Users/Administrator/AppData/Roaming/Microsoft/Protect/" + sid + "/" + guid);
 		if (flag == false) {
 			break;
 		}
@@ -88,7 +88,7 @@ int main() {
 	wcout << L"Description" << viewer.GetDescription() << endl;
 	wcout << "User name: " << viewer.GetTargetName() << endl;
 	wcout << L"Target Name: " << viewer.GetUserName() << endl;
-	cout << " Last written time: " << viewer.GetLastWritten() << endl;
+	cout << "Last written time: " << viewer.GetLastWritten() << endl;
 	cout << "Credential Blob: " << viewer.GetCredBlob() << endl;
 	
 	/*
