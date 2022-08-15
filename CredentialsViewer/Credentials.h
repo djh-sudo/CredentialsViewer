@@ -106,6 +106,9 @@ public:
 
 			dwDescriptionLen = ((P_DPAPI_BLOB)((char *)memory + acc))->dwDescriptionLen;
 			m_description = std::wstring(((P_DPAPI_BLOB)((char *)memory + acc))->szDescription, dwDescriptionLen >> 1);
+			// delete \r\n
+			m_description.pop_back();
+			m_description.pop_back();
 			acc += dwDescriptionLen;
 			
 			m_dwAlgCryptLen = *(PDWORD)((char *)memory + acc + 52);
